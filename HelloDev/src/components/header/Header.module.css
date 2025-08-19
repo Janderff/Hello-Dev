@@ -1,0 +1,9 @@
+.header {
+  background: var(--gray-900);
+  display: flex;
+  justify-content: center;
+}
+
+.header img {
+  height: 8rem;
+}
