@@ -1,45 +1,78 @@
 import { Avatar } from '../avatar/Avatar'
+import { format, formatDistanceToNow, set } from 'date-fns'
+import ptBR from 'date-fns/locale/pt-BR'
 import { Comment } from '../comment/comment'
 import styles from './Post.module.css'
-export function Post() {
+import { useState } from 'react'
+
+export function Post({ author, publishedAt, content }) {
+  const [comments, setComments] = useState([])
+  const [newCommentText, setNewCommentText] = useState('')
+  const publishedAtDate = format(publishedAt, "d 'de' LLLL 'as' HH:mm'h'", {
+    locale: ptBR,
+  })
+
+  const publishedAtDistance = formatDistanceToNow(publishedAt, {
+    locale: ptBR,
+    addSuffix: true,
+  })
+
+  function handleCreateNewComment() {
+    //Os codigos comentados abaixo funcionam de forma imperatira mas em react o melhor é fazer de forma declarativa
+    event.preventDefault()
+    const newCommentText = event.target.newComment.value
+
+    setComments([...comments, newCommentText])
+    setNewCommentText('')
+    //event.target.newComment.value = ''
+  }
+  function handleNewCommentChange() {
+    setNewCommentText(event.target.value)
+  }
   return (
     <article className={styles.post}>
       <header>
         <div className={styles.author}>
-          <Avatar hasBorder src='https://github.com/janderff.png' />
+          <Avatar hasBorder src={author.avatarUrl} />
           <div className={styles.authorInfo}>
-            <strong>Guilherme</strong>
-            <span>Web Developer</span>
+            <strong>{author.name}</strong>
+            <span>{author.role}</span>
           </div>
         </div>
-        <time title='19 de agosto as 06:14' datetime='2025-08-19 06:14:00'>
-          Publicado ha 1h
+        <time title={publishedAtDate} dateTime={publishedAt.toISOString()}>
+          {publishedAtDistance}
         </time>
       </header>
       <div className={styles.content}>
-        <p> Fala galeraa, beleza? </p>
-        <p>
-          Acabei de subir mais um porjeto no meu portifolio. É um porjeto qeu
-          utlizei para aprender alguns fundamentos basicos de React{' '}
-        </p>
-        <p>
-          <a href='#'>guilherme.design/doctorrcare</a>
-        </p>
-        <p>
-          <a href=''>#novoprojeto</a>
-          <a> #react</a>
-          <a> #dev</a>
-        </p>
+        {content.map((line) => {
+          if (line.type === 'paragraph') {
+            return <p key={line.content}>{line.content}</p>
+          } else if (line.type === 'link') {
+            return (
+              <p key={line.content}>
+                <a href='#'>{line.content}</a>
+              </p>
+            )
+          }
+        })}
       </div>
       <div className={styles.line} />
       <div>
-        <form className={styles.commentForm}>
+        <form onSubmit={handleCreateNewComment} className={styles.commentForm}>
           <strong>Deixe seu feedback</strong>
-          <textarea placeholder='Deixe um comentario' />
-          <button>Publicar</button>
+          <textarea
+            name='newComment'
+            required
+            value={newCommentText}
+            placeholder='Deixe um comentario'
+            onChange={handleNewCommentChange}
+          />
+          <button type='submit'>Publicar</button>
         </form>
       </div>
-      <Comment />
+      {comments.map((comment) => {
+        return <Comment content={comment} />
+      })}
     </article>
   )
 }
